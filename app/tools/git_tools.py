@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Set, Optional
 from collections import defaultdict
 from datetime import datetime, timedelta
-from crewai_tools import tool
 
 # Shared analysis cache for inter-agent communication
 _analysis_cache = {}
@@ -41,7 +40,6 @@ def _is_git_repo(directory: str) -> bool:
     return code == 0
 
 
-@tool
 def get_git_history(directory: str, max_commits: int = 100, since: str = "") -> dict:
     """
     Retrieves commit history with metadata for change analysis
@@ -145,7 +143,6 @@ def get_git_history(directory: str, max_commits: int = 100, since: str = "") -> 
         return {"error": str(e), "is_git_repo": True}
 
 
-@tool
 def get_file_blame(directory: str, file_path: str, line_range: str = "") -> dict:
     """
     Retrieves git blame information for a specific file to identify code ownership
@@ -223,7 +220,6 @@ def get_file_blame(directory: str, file_path: str, line_range: str = "") -> dict
         return {"error": str(e), "file": file_path, "is_git_repo": True}
 
 
-@tool
 def detect_churn(directory: str, top_n: int = 20, since: str = "6 months ago") -> dict:
     """
     Detects high-churn files (frequently modified files) that indicate instability or technical debt
@@ -317,7 +313,6 @@ def detect_churn(directory: str, top_n: int = 20, since: str = "6 months ago") -
         return {"error": str(e), "is_git_repo": True}
 
 
-@tool
 def get_recent_changes(directory: str, file_path: str = "", max_commits: int = 10) -> dict:
     """
     Retrieves recent commits affecting a specific file or the entire repository
@@ -414,7 +409,6 @@ def get_recent_changes(directory: str, file_path: str = "", max_commits: int = 1
         return {"error": str(e), "is_git_repo": True}
 
 
-@tool
 def analyze_commit_patterns(directory: str, since: str = "6 months ago") -> dict:
     """
     Analyzes commit patterns to detect process issues, review gaps, and development velocity
@@ -547,7 +541,6 @@ def analyze_commit_patterns(directory: str, since: str = "6 months ago") -> dict
         return {"error": str(e), "is_git_repo": True}
 
 
-@tool
 def get_code_ownership(directory: str, min_ownership_pct: float = 30.0) -> dict:
     """
     Analyzes code ownership across the repository to identify knowledge concentration
@@ -632,7 +625,6 @@ def get_code_ownership(directory: str, min_ownership_pct: float = 30.0) -> dict:
         return {"error": str(e), "is_git_repo": True}
 
 
-@tool
 def detect_refactoring_candidates(directory: str, since: str = "3 months ago") -> dict:
     """
     Uses git history to identify files that are refactoring candidates based on change patterns

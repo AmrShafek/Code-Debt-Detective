@@ -38,7 +38,7 @@ def render_repo_selection():
             repo_names = [r["name"] for r in local_repos]
             selected = st.selectbox("Select a repository", repo_names)
 
-            if st.button("\U0001F50D Analyze Selected Repo", use_container_width=True, type="primary"):
+            if st.button("\U0001F50D Analyze Selected Repo", width="stretch", type="primary"):
                 repo = next(r for r in local_repos if r["name"] == selected)
                 st.session_state.session_memory.new_session(selected)
                 run_analysis_direct(repo["name"], repo["path"])
@@ -50,7 +50,7 @@ def render_repo_selection():
             placeholder="https://github.com/user/repo.git")
         branch = st.text_input("Branch (optional)", placeholder="main")
 
-        if st.button("\U0001F500 Clone & Analyze", use_container_width=True, type="primary"):
+        if st.button("\U0001F500 Clone & Analyze", width="stretch", type="primary"):
             if repo_url:
                 with st.spinner("Cloning repository..."):
                     result = scanner.clone_repository(repo_url, branch or None)
@@ -68,7 +68,7 @@ def render_repo_selection():
 
     local_path = st.text_input("Local directory path",
         placeholder="C:/path/to/your/project")
-    if st.button("\U0001F4C2 Scan Directory", use_container_width=True):
+    if st.button("\U0001F4C2 Scan Directory", width="stretch"):
         if local_path:
             import os
             if os.path.isdir(local_path):
@@ -86,14 +86,13 @@ def render_repo_selection():
 
 def run_analysis_direct(repo_name: str, repo_path: str):
     """Run analysis directly and update session state"""
-    import asyncio
     from app.workflows.analysis_workflow import AnalysisWorkflow
 
     st.session_state.running = True
 
-    async def run():
+    try:
         workflow = AnalysisWorkflow(repo_path, use_llm=False)
-        results = await workflow.run_full_analysis()
+        results = workflow.run_full_analysis()
 
         st.session_state.analysis_results = results
         st.session_state.session_memory.save_analysis(results)
@@ -103,8 +102,6 @@ def run_analysis_direct(repo_name: str, repo_path: str):
 
         st.session_state.running = False
 
-    try:
-        asyncio.run(run())
         if st.session_state.analysis_results:
             st.success(f"Analysis complete for {repo_name}!")
             st.rerun()

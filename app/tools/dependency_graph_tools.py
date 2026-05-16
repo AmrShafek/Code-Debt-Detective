@@ -8,12 +8,10 @@ import ast
 from pathlib import Path
 from typing import Dict, List, Tuple, Set, Optional
 from collections import defaultdict
-from crewai_tools import tool
 
 _analysis_cache = {}
 
 
-@tool
 def extract_imports(directory: str) -> dict:
     """
     Extracts all import relationships across the codebase
@@ -100,7 +98,6 @@ def extract_imports(directory: str) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def build_dependency_matrix(directory: str) -> dict:
     """
     Builds a dependency matrix showing which modules depend on which
@@ -167,7 +164,6 @@ def build_dependency_matrix(directory: str) -> dict:
     return result
 
 
-@tool
 def detect_cyclic_dependencies(directory: str) -> dict:
     """
     Detects cyclic dependencies between modules using DFS on the dependency graph
@@ -242,7 +238,6 @@ def detect_cyclic_dependencies(directory: str) -> dict:
     return result
 
 
-@tool
 def calculate_coupling_metrics(directory: str) -> dict:
     """
     Calculates coupling and cohesion metrics for each module
@@ -309,7 +304,6 @@ def _calculate_main_seq_distance(metrics: dict) -> dict:
     return distances
 
 
-@tool
 def build_dependency_graph_json(directory: str) -> dict:
     """
     Builds a complete dependency graph in JSON format for visualization

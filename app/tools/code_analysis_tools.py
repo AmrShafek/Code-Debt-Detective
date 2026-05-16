@@ -9,14 +9,12 @@ import ast
 from pathlib import Path
 from typing import Dict, List, Tuple, Set
 from collections import defaultdict
-from crewai_tools import tool
 
 
 # Shared analysis cache for inter-agent communication
 _analysis_cache = {}
 
 
-@tool
 def analyze_file_structure(directory: str) -> dict:
     """
     Analyzes the file structure of a codebase with language detection and size metrics
@@ -143,7 +141,6 @@ def analyze_file_structure(directory: str) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def identify_modules(directory: str) -> dict:
     """
     Identifies logical modules, their boundaries, and architectural roles
@@ -292,7 +289,6 @@ def identify_modules(directory: str) -> dict:
     return result
 
 
-@tool
 def calculate_code_metrics(directory: str) -> dict:
     """
     Calculates comprehensive code quality metrics across the codebase
@@ -420,7 +416,6 @@ def calculate_code_metrics(directory: str) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def detect_architectural_issues(directory: str) -> dict:
     """
     Detects architectural issues like layering violations, cyclic dependencies, and god modules

@@ -1,6 +1,7 @@
 """
 Analysis Workflow
 Orchestrates the full multi-agent code analysis pipeline
+Code Analyzer Agent uses QWEN CODER via OpenRouter
 """
 
 from typing import Dict, Any, Optional
@@ -8,6 +9,7 @@ import json
 from pathlib import Path
 
 from app.agents.code_analyzer_agent import create_code_analyzer, create_analysis_task
+from app.services.llm_service import LLMService
 from app.tools.code_analysis_tools import (
     analyze_file_structure,
     identify_modules,
@@ -42,8 +44,9 @@ class AnalysisWorkflow:
         self.use_llm = use_llm
         self.results = {}
         self.agent = None
+        self._llm = LLMService()
 
-    async def run_full_analysis(self) -> Dict[str, Any]:
+    def run_full_analysis(self) -> Dict[str, Any]:
         """Run the complete analysis pipeline"""
         self.results["file_structure"] = analyze_file_structure(str(self.repo_path))
         self.results["imports"] = extract_imports(str(self.repo_path))
@@ -73,14 +76,16 @@ class AnalysisWorkflow:
             self.results["error"] = self.results["file_structure"]["error"]
 
         if self.use_llm and "error" not in self.results:
-            await self._run_llm_analysis()
+            self._run_llm_analysis()
 
         return self._build_report()
 
-    async def _run_llm_analysis(self):
-        """Run CrewAI agent analysis on collected data"""
+    def _run_llm_analysis(self):
+        """Run CrewAI Code Analyzer with QWEN CODER"""
         try:
-            self.agent = create_code_analyzer()
+            llm = self._llm.get_code_analyzer_llm()
+            self.agent = create_code_analyzer(llm=llm)
+
             analysis_summary = json.dumps({
                 "file_count": self.results.get("file_structure", {}).get("total_files"),
                 "total_lines": self.results.get("file_structure", {}).get("total_lines"),

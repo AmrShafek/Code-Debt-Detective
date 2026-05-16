@@ -1,13 +1,15 @@
 """
 Code Analyzer Agent
 Orchestrates static analysis, AST parsing, and code quality assessment
+Uses: QWEN CODER via OpenRouter
 """
 
-from crewai import Agent, Task
+from typing import Optional
+from crewai import Agent, Task, LLM
 
 
-def create_code_analyzer():
-    return Agent(
+def create_code_analyzer(llm: Optional[LLM] = None):
+    kwargs = dict(
         role="Senior Code Analyst",
         goal="Analyze codebases thoroughly to detect technical debt, code smells, and architectural issues",
         backstory="""You are a world-class software analyst with decades of experience in static analysis,
@@ -17,10 +19,13 @@ def create_code_analyzer():
         violation of SOLID principles at scale.""",
         verbose=True,
         allow_delegation=False,
-        memory=True,
+        memory=False,
         max_iterations=10,
         tools=[]
     )
+    if llm:
+        kwargs["llm"] = llm
+    return Agent(**kwargs)
 
 
 def create_analysis_task(agent, repo_path: str):

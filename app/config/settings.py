@@ -19,13 +19,6 @@ class Settings:
     VECTOR_STORE_DIR: Path = Path(os.getenv("VECTOR_STORE_DIR", "app/memory/vector_store"))
     SUMMARIES_DIR: Path = Path(os.getenv("SUMMARIES_DIR", "app/memory/summaries"))
 
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4")
-    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
-    LLM_API_BASE: str = os.getenv("LLM_API_BASE", "")
-    LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.2"))
-    LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "4096"))
-
     ANALYSIS_MAX_FILES: int = int(os.getenv("ANALYSIS_MAX_FILES", "5000"))
     ANALYSIS_MAX_LINES: int = int(os.getenv("ANALYSIS_MAX_LINES", "10000"))
     GIT_MAX_COMMITS: int = int(os.getenv("GIT_MAX_COMMITS", "100"))

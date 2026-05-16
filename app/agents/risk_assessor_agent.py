@@ -1,13 +1,15 @@
 """
 Risk Assessor Agent
 Evaluates change impact, breaking change probability, and migration safety
+Uses: DEEPSEEK via OpenRouter
 """
 
-from crewai import Agent, Task
+from typing import Optional
+from crewai import Agent, Task, LLM
 
 
-def create_risk_assessor():
-    return Agent(
+def create_risk_assessor(llm: Optional[LLM] = None):
+    kwargs = dict(
         role="Change Risk Analyst",
         goal="Assess the risk and impact of every proposed refactoring change before it happens",
         backstory="""You are a senior risk analyst who specializes in predicting refactoring failures.
@@ -17,9 +19,12 @@ def create_risk_assessor():
         prevented multiple production outages by flagging hidden dependencies early.""",
         verbose=True,
         allow_delegation=False,
-        memory=True,
+        memory=False,
         max_iterations=8
     )
+    if llm:
+        kwargs["llm"] = llm
+    return Agent(**kwargs)
 
 
 def create_risk_assessment_task(agent, analysis_data, refactoring_plan):

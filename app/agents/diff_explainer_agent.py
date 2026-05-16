@@ -1,19 +1,15 @@
 """
 Diff Explainer Agent
 Generates human-friendly migration guides and actionable reports
+Uses: DEEPSEEK via OpenRouter
 """
 
-from crewai import Agent, Task
+from typing import Optional
+from crewai import Agent, Task, LLM
 
-def create_diff_explainer():
-    """
-    Creates the Diff Explainer agent responsible for:
-    - Translating technical analysis into business language
-    - Creating migration guides
-    - Writing clear commit messages and PR descriptions
-    - Documenting breaking changes for teams
-    """
-    return Agent(
+
+def create_diff_explainer(llm: Optional[LLM] = None):
+    kwargs = dict(
         role="Technical Documentation Specialist",
         goal="Translate complex refactoring analysis into clear, actionable guides that non-specialists can follow",
         backstory="""You are an exceptional technical writer who bridges the gap between 
@@ -22,27 +18,17 @@ def create_diff_explainer():
         You've written runbooks that prevented outages, migration guides that completed on schedule, 
         and breaking change notices that didn't cause panic.
         You always think about your audience: DevOps engineers, QA, product, leadership.""",
-        
         verbose=True,
         allow_delegation=False,
-        memory=True,
+        memory=False,
         max_iterations=5
     )
+    if llm:
+        kwargs["llm"] = llm
+    return Agent(**kwargs)
 
 
 def create_diff_explanation_task(agent, analysis_data, refactoring_plan, risk_assessment):
-    """
-    Creates a task for the Diff Explainer agent
-    
-    Args:
-        agent: Diff Explainer agent instance
-        analysis_data: Output from Code Analyzer
-        refactoring_plan: Output from Refactoring Strategist
-        risk_assessment: Output from Risk Assessor
-    
-    Returns:
-        Task instance with explanation requirements
-    """
     return Task(
         description=f"""Create comprehensive, clear documentation for this refactoring:
 
@@ -137,7 +123,7 @@ Generate the following documents:
 6. **Communication Templates**
    
    **Slack announcement:**
-   "🔧 Phase X refactoring ships tomorrow at 10 AM. Expected 0 customer impact. Watch #outages for updates."
+   "Phase X refactoring ships tomorrow at 10 AM. Expected 0 customer impact. Watch #outages for updates."
    
    **Email to affected teams:**
    Subject: "Action required: UserService API changes (by Friday)"
@@ -210,7 +196,6 @@ Output everything as:
 ```
 
 Write as if you're helping someone who has never done this before. Every step must be crystal clear.""",
-        
         agent=agent,
         expected_output="Comprehensive migration guides, communication templates, testing checklists, and incident runbooks"
     )

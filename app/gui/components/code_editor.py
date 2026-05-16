@@ -43,7 +43,7 @@ def render_file_browser(files: list, on_select=None):
                 with st.expander(f"\U0001F4C1 {name}", expanded=False):
                     _render_tree(children, full_path)
             else:
-                if st.button(f"\U0001F4C4 {name}", key=full_path, use_container_width=True):
+                if st.button(f"\U0001F4C4 {name}", key=full_path, width="stretch"):
                     if on_select:
                         on_select(full_path)
 

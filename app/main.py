@@ -3,35 +3,27 @@ Code Debt Detective - Main Entry Point
 AI-powered multi-agent system for analyzing software repositories
 """
 
+import subprocess
 import sys
-import asyncio
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config.settings import settings
+from app.services.llm_service import LLMService
 
 
 def main():
     settings.ensure_dirs()
+    llm = LLMService()
+    ca = llm.get_code_analyzer_config()
+    rf = llm.get_refactor_config()
     print(f"{settings.APP_NAME} v{settings.APP_VERSION}")
-    print(f"LLM Provider: {settings.LLM_PROVIDER.upper()} ({settings.LLM_MODEL})")
+    print(f"Code Analyzer: {ca.get('model', 'N/A')} ({'key set' if llm.is_code_analyzer_configured() else 'no key'})")
+    print(f"Refactoring Agents: {rf.get('model', 'N/A')} ({'key set' if llm.is_refactor_configured() else 'no key'})")
 
-    try:
-        import streamlit.web.bootstrap
-        from app.gui.app import main as gui_main
-
-        gui_path = Path(__file__).parent / "gui" / "app.py"
-        sys.argv = ["streamlit", "run", str(gui_path)]
-        streamlit.web.bootstrap.run(
-            str(gui_path),
-            None,
-            [],
-            flag_options={}
-        )
-    except ImportError:
-        print("Streamlit not available. Run: pip install streamlit")
-        sys.exit(1)
+    gui_path = Path(__file__).parent / "gui" / "app.py"
+    subprocess.run([sys.executable, "-m", "streamlit", "run", str(gui_path)])
 
 
 def run_cli():
@@ -44,14 +36,11 @@ def run_cli():
 
     args = parser.parse_args()
 
-    async def analyze():
-        from app.workflows.analysis_workflow import AnalysisWorkflow
-        workflow = AnalysisWorkflow(args.path, use_llm=not args.no_llm)
-        result = await workflow.run_full_analysis()
-        import json
-        print(json.dumps(result, indent=2, default=str))
-
-    asyncio.run(analyze())
+    from app.workflows.analysis_workflow import AnalysisWorkflow
+    workflow = AnalysisWorkflow(args.path, use_llm=not args.no_llm)
+    result = workflow.run_full_analysis()
+    import json
+    print(json.dumps(result, indent=2, default=str))
 
 
 if __name__ == "__main__":

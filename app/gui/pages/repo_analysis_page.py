@@ -125,12 +125,13 @@ def render_dependencies_tab(details):
     cycles = details.get("cyclic_dependencies", {})
     if cycles.get("cycles"):
         st.warning(f"Found {cycles.get('total_cycles', 0)} cyclic dependencies")
+        arrow = " \u2192 "
         for cycle in cycles.get("cycles", []):
             severity = cycle.get("severity", "low")
             badge = {"high": "badge-high", "medium": "badge-medium", "low": "badge-low"}.get(severity, "badge-low")
             st.markdown(
                 f'<span class="badge {badge}">{severity.upper()}</span> '
-                f'Cycle: {" \u2192 ".join(cycle.get("cycle", []))}',
+                f'Cycle: {arrow.join(cycle.get("cycle", []))}',
                 unsafe_allow_html=True
             )
     else:
@@ -148,7 +149,7 @@ def render_dependencies_tab(details):
                 "afferent": m.get("afferent_coupling", 0),
                 "efferent": m.get("efferent_coupling", 0)
             })
-        st.dataframe(data, use_container_width=True)
+        st.dataframe(data, width="stretch")
 
 
 def render_smells_tab(details):

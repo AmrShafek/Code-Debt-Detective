@@ -1,19 +1,15 @@
 """
 Refactoring Strategist Agent
 Plans safe, phased refactoring with clear milestones
+Uses: DEEPSEEK via OpenRouter
 """
 
-from crewai import Agent, Task
+from typing import Optional
+from crewai import Agent, Task, LLM
 
-def create_refactoring_strategist():
-    """
-    Creates the Refactoring Strategist agent responsible for:
-    - Planning refactoring phases
-    - Prioritizing work based on impact and risk
-    - Identifying extraction opportunities
-    - Sequencing changes safely
-    """
-    return Agent(
+
+def create_refactoring_strategist(llm: Optional[LLM] = None):
+    kwargs = dict(
         role="Refactoring Strategy Lead",
         goal="Create a practical, phased refactoring plan that minimizes disruption while maximizing impact",
         backstory="""You are an expert in software refactoring with a perfect track record of 
@@ -21,25 +17,17 @@ def create_refactoring_strategist():
         done incrementally, with clear milestones and rollback points.
         You prioritize based on: risk mitigation first, then impact, then effort.
         You always consider team capacity and business constraints.""",
-        
         verbose=True,
         allow_delegation=False,
-        memory=True,
+        memory=False,
         max_iterations=7
     )
+    if llm:
+        kwargs["llm"] = llm
+    return Agent(**kwargs)
 
 
 def create_refactoring_strategy_task(agent, analysis_data):
-    """
-    Creates a task for the Refactoring Strategist agent
-    
-    Args:
-        agent: Refactoring Strategist agent instance
-        analysis_data: Output from Code Analyzer agent (dependency graph, coupling metrics)
-    
-    Returns:
-        Task instance with planning requirements
-    """
     return Task(
         description=f"""Based on this code analysis:
 {analysis_data}
@@ -118,7 +106,6 @@ Create a detailed, practical refactoring plan with these constraints:
 
 Be specific about module names and actual pain points you see in the analysis.
 Avoid generic advice—this plan must be immediately actionable.""",
-        
         agent=agent,
         expected_output="Detailed refactoring roadmap with phased approach, priorities, risks, and success criteria"
     )

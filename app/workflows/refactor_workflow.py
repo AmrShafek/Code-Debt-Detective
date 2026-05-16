@@ -1,10 +1,12 @@
 """
 Refactor Workflow
 Orchestrates multi-agent refactoring strategy generation, risk assessment, and diff explanation
+Strategist, Risk Assessor, and Diff Explainer use DEEPSEEK via OpenRouter
 """
 
 from typing import Dict, Any, Optional
 import json
+import re
 from pathlib import Path
 
 from app.agents.refactor_strategist_agent import (
@@ -19,6 +21,7 @@ from app.agents.diff_explainer_agent import (
     create_diff_explainer,
     create_diff_explanation_task
 )
+from app.services.llm_service import LLMService
 
 
 class RefactorWorkflow:
@@ -30,15 +33,16 @@ class RefactorWorkflow:
         self.refactoring_plan = None
         self.risk_assessment = None
         self.diff_explanation = None
+        self._llm = LLMService()
 
-    async def run_full_refactoring_pipeline(self) -> Dict[str, Any]:
+    def run_full_refactoring_pipeline(self) -> Dict[str, Any]:
         """Run the complete refactoring pipeline"""
         if not self.use_llm:
             self.refactoring_plan = self._generate_local_plan()
             self.risk_assessment = self._assess_local_risk()
             self.diff_explanation = self._generate_local_explanation()
         else:
-            await self._run_llm_pipeline()
+            self._run_llm_pipeline()
 
         return self._build_report()
 
@@ -137,25 +141,40 @@ class RefactorWorkflow:
             }
         }
 
-    async def _run_llm_pipeline(self):
-        """Run the full CrewAI pipeline with all three agents"""
+    @staticmethod
+    def _parse_json_response(text: str) -> dict | str:
+        """Extract JSON from LLM response (handles markdown code blocks)."""
+        if isinstance(text, dict):
+            return text
+        text = str(text)
+        match = re.search(r'```(?:json)?\s*\n(.*?)\n```', text, re.DOTALL)
+        if match:
+            text = match.group(1)
         try:
+            return json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            return text
+
+    def _run_llm_pipeline(self):
+        """Run the full CrewAI pipeline with DEEPSEEK for all 3 refactoring agents"""
+        try:
+            refactor_llm = self._llm.get_refactor_llm()
             analysis_summary = json.dumps(self.analysis.get("summary", {}), indent=2)
 
-            strategist = create_refactoring_strategist()
+            strategist = create_refactoring_strategist(llm=refactor_llm)
             strategy_task = create_refactoring_strategy_task(strategist, analysis_summary)
-            self.refactoring_plan = strategist.execute_task(strategy_task)
+            self.refactoring_plan = self._parse_json_response(strategist.execute_task(strategy_task))
 
-            assessor = create_risk_assessor()
+            assessor = create_risk_assessor(llm=refactor_llm)
             risk_task = create_risk_assessment_task(assessor, analysis_summary, str(self.refactoring_plan))
-            self.risk_assessment = assessor.execute_task(risk_task)
+            self.risk_assessment = self._parse_json_response(assessor.execute_task(risk_task))
 
-            explainer = create_diff_explainer()
+            explainer = create_diff_explainer(llm=refactor_llm)
             explain_task = create_diff_explanation_task(
                 explainer, analysis_summary,
                 str(self.refactoring_plan), str(self.risk_assessment)
             )
-            self.diff_explanation = explainer.execute_task(explain_task)
+            self.diff_explanation = self._parse_json_response(explainer.execute_task(explain_task))
         except Exception as e:
             error = {"error": str(e)}
             if not self.refactoring_plan:

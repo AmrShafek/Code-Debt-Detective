@@ -2,7 +2,6 @@
 Refactoring page - View and explore refactoring strategies
 """
 
-import asyncio
 import streamlit as st
 from app.workflows.refactor_workflow import RefactorWorkflow
 
@@ -26,15 +25,12 @@ def render():
         use_llm = st.checkbox("Use LLM for deeper analysis", value=False,
             help="Requires LLM API key to be configured")
 
-        if st.button("\U0001F9F0 Generate Refactoring Strategy", use_container_width=True, type="primary"):
+        if st.button("\U0001F9F0 Generate Refactoring Strategy", width="stretch", type="primary"):
             with st.spinner("Generating refactoring plan..."):
                 workflow = RefactorWorkflow(analyses, use_llm=use_llm)
 
-                async def run():
-                    return await workflow.run_full_refactoring_pipeline()
-
                 try:
-                    results = asyncio.run(run())
+                    results = workflow.run_full_refactoring_pipeline()
                     st.session_state.refactoring_results = results
                     st.session_state.session_memory.save_refactoring(results)
                     st.success("Refactoring plan generated!")
@@ -42,14 +38,11 @@ def render():
                 except Exception as e:
                     st.error(f"Failed: {str(e)}")
 
-        if st.button("\U0001F504 Regenerate (local only)", use_container_width=True):
+        if st.button("\U0001F504 Regenerate (local only)", width="stretch"):
             workflow = RefactorWorkflow(analyses, use_llm=False)
 
-            async def run():
-                return await workflow.run_full_refactoring_pipeline()
-
             try:
-                results = asyncio.run(run())
+                results = workflow.run_full_refactoring_pipeline()
                 st.session_state.refactoring_results = results
                 st.session_state.session_memory.save_refactoring(results)
                 st.success("Refactoring plan regenerated!")
@@ -123,7 +116,7 @@ def render_refactoring_plan(ref_results):
                 "Risk": opp.get("risk_score", 0),
                 "Impact": opp.get("impact_score", 0),
             })
-        st.dataframe(opp_data, use_container_width=True)
+        st.dataframe(opp_data, width="stretch")
 
 
 def render_refactoring_details(ref_results):

@@ -9,13 +9,11 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Set, Optional, Any
 from collections import defaultdict
-from crewai_tools import tool
 
 # Shared analysis cache for inter-agent communication
 _analysis_cache = {}
 
 
-@tool
 def parse_ast_tree(file_path: str) -> dict:
     """
     Parse a Python file into an Abstract Syntax Tree (AST)
@@ -58,7 +56,6 @@ def parse_ast_tree(file_path: str) -> dict:
         return {"file": file_path, "parsed": False, "error": str(e)}
 
 
-@tool
 def extract_functions(directory: str, include_metrics: bool = True) -> dict:
     """
     Extract all function and method definitions from Python files with optional complexity metrics
@@ -178,7 +175,6 @@ def extract_functions(directory: str, include_metrics: bool = True) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def extract_classes(directory: str) -> dict:
     """
     Extract all class definitions from Python files with inheritance and composition analysis
@@ -288,7 +284,6 @@ def extract_classes(directory: str) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def find_code_smells(directory: str) -> dict:
     """
     Detect common code smells and anti-patterns in Python code
@@ -417,7 +412,6 @@ def find_code_smells(directory: str) -> dict:
         return {"error": str(e)}
 
 
-@tool
 def get_function_dependencies(directory: str) -> dict:
     """
     Analyze function-level call dependencies within the codebase

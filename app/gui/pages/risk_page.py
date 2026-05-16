@@ -104,7 +104,7 @@ def render_risk_details(risk):
                 )
             })
 
-        st.dataframe(risk_data, use_container_width=True, hide_index=True)
+        st.dataframe(risk_data, width="stretch", hide_index=True)
 
     st.markdown("#### Risk Score Formula")
     st.caption("Overall Risk = (Impact x Probability) / Detection")

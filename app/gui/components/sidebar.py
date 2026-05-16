@@ -4,10 +4,13 @@ Sidebar navigation component for the Streamlit GUI
 
 import streamlit as st
 from app.config.settings import settings
+from app.services.llm_service import LLMService
 
 
 def render_sidebar():
     """Render the sidebar with navigation and app controls"""
+    llm = LLMService()
+
     with st.sidebar:
         st.markdown("# \U0001F50D Code Debt Detective")
         st.markdown("---")
@@ -16,7 +19,7 @@ def render_sidebar():
 
         if st.button(
             "\U0001F4CA Dashboard",
-            use_container_width=True,
+            width="stretch",
             type="secondary" if st.session_state.current_page != "Dashboard" else "primary"
         ):
             st.session_state.current_page = "Dashboard"
@@ -24,7 +27,7 @@ def render_sidebar():
 
         if st.button(
             "\U0001F50D Repository Analysis",
-            use_container_width=True,
+            width="stretch",
             type="secondary" if st.session_state.current_page != "Repository Analysis" else "primary"
         ):
             st.session_state.current_page = "Repository Analysis"
@@ -32,7 +35,7 @@ def render_sidebar():
 
         if st.button(
             "\U0001F527 Refactoring",
-            use_container_width=True,
+            width="stretch",
             type="secondary" if st.session_state.current_page != "Refactoring" else "primary"
         ):
             st.session_state.current_page = "Refactoring"
@@ -40,7 +43,7 @@ def render_sidebar():
 
         if st.button(
             "\u26A0\uFE0F Risk Assessment",
-            use_container_width=True,
+            width="stretch",
             type="secondary" if st.session_state.current_page != "Risk Assessment" else "primary"
         ):
             st.session_state.current_page = "Risk Assessment"
@@ -58,11 +61,19 @@ def render_sidebar():
 
         st.markdown("---")
 
-        st.markdown("### Settings")
-        st.caption(f"LLM: {settings.LLM_PROVIDER.upper()}")
-        st.caption(f"Model: {settings.LLM_MODEL}")
+        st.markdown("### LLM Configuration")
 
-        if st.button("\U0001F504 Reset Session", use_container_width=True):
+        ca_cfg = llm.get_code_analyzer_config()
+        ca_ok = llm.is_code_analyzer_configured()
+        st.caption(f"\U0001F50D **Code Analyzer:** {ca_cfg.get('model', 'N/A')}")
+        st.caption(f"{'✅ Configured' if ca_ok else '❌ No API key'}")
+
+        rf_cfg = llm.get_refactor_config()
+        rf_ok = llm.is_refactor_configured()
+        st.caption(f"\U0001F527 **Strategist/Risk/Explainer:** {rf_cfg.get('model', 'N/A')}")
+        st.caption(f"{'✅ Configured' if rf_ok else '❌ No API key'}")
+
+        if st.button("\U0001F504 Reset Session", width="stretch"):
             st.session_state.session_memory.clear_current()
             st.session_state.analysis_results = None
             st.session_state.refactoring_results = None
